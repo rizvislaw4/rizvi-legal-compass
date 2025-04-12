@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+                // Legal compass custom colors
+                law: {
+                    primary: '#0F3057',
+                    secondary: '#E5B80B',
+                    accent: '#008891',
+                    light: '#F5F7FA',
+                    dark: '#1A1D2C',
+                    text: '#333333',
+                    lightText: '#E0E0E0'
+                }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
