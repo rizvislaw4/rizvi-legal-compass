@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const GoogleButton = () => {
   const handleGoogleSignIn = async () => {
@@ -12,7 +13,8 @@ const GoogleButton = () => {
         },
       });
       if (error) throw error;
-    } catch (error) {
+    } catch (error: any) {
+      toast.error(`Error signing in with Google: ${error.message}`);
       console.error("Error signing in with Google:", error);
     }
   };

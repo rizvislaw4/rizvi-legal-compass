@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -69,7 +70,9 @@ export function SignUpForm() {
         role: values.role,
       });
       form.reset();
-    } catch (error) {
+      toast.success("Account created! Please check your email for verification.");
+    } catch (error: any) {
+      toast.error(`Sign up error: ${error.message}`);
       console.error("Sign up error:", error);
     } finally {
       setIsLoading(false);

@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (event === 'SIGNED_IN') {
           toast.success("Successfully signed in!");
-          navigate('/');
+          navigate('/dashboard');
         }
         if (event === 'SIGNED_OUT') {
           toast.info("Signed out");
@@ -113,6 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             full_name: userData.fullName,
             role: userData.role || 'client',
           },
+          emailRedirectTo: `${window.location.origin}/auth`,
         },
       });
       if (error) throw error;
