@@ -1,16 +1,29 @@
 
-import { AuthTabs } from "@/components/auth/AuthTabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
+import { SignInForm } from "@/components/auth/SignInForm";
+import { SignUpForm } from "@/components/auth/SignUpForm";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const AuthPage = () => {
   const { theme, setTheme } = useTheme();
+  const { user, loading } = useAuth();
   
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
+
+  if (loading) {
+    return null;
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-law-dark p-4">
@@ -35,7 +48,7 @@ const AuthPage = () => {
         <Card>
           <CardHeader className="space-y-1">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Sign in</h2>
+              <h2 className="text-xl font-semibold">Account Access</h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -50,11 +63,22 @@ const AuthPage = () => {
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">
-              Select your user type to continue
+              Sign in or create an account to continue
             </p>
           </CardHeader>
           <CardContent>
-            <AuthTabs />
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="signin">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Create Account</TabsTrigger>
+              </TabsList>
+              <TabsContent value="signin">
+                <SignInForm />
+              </TabsContent>
+              <TabsContent value="signup">
+                <SignUpForm />
+              </TabsContent>
+            </Tabs>
           </CardContent>
           <CardFooter className="flex justify-center border-t pt-4">
             <p className="text-xs text-muted-foreground">
