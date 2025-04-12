@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
 import UserMenu from "./UserMenu";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -33,7 +33,7 @@ const Header = () => {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0" hideOverlay={false}>
+              <SheetContent side="left" className="p-0">
                 <Sidebar />
               </SheetContent>
             </Sheet>

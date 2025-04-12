@@ -26,7 +26,7 @@ import {
   Search
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 // Mock data

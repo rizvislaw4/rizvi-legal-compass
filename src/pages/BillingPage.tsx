@@ -1,4 +1,3 @@
-
 import AppLayout from "@/components/layouts/AppLayout";
 import { useState } from "react";
 import {
@@ -28,7 +27,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data
 const invoices = [

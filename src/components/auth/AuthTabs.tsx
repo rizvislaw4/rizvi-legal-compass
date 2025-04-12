@@ -1,8 +1,7 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GoogleButton from "./GoogleButton";
 import { LoginForm, LoginFormValues } from "./LoginForm";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 
 export function AuthTabs() {
   const { toast } = useToast();
