@@ -16,6 +16,7 @@ import ClientsPage from "./pages/ClientsPage";
 import BillingPage from "./pages/BillingPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
+import AdminPage from "./pages/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -34,7 +35,16 @@ const App = () => (
               {/* Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/cases" element={<ProtectedRoute><CasesPage /></ProtectedRoute>} />
-              <Route path="/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
+              <Route path="/clients" element={
+                <ProtectedRoute requiredRole="admin">
+                  <ClientsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminPage />
+                </ProtectedRoute>
+              } />
               <Route path="/documents" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> {/* Placeholder */}
               <Route path="/calendar" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> {/* Placeholder */}
               <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />

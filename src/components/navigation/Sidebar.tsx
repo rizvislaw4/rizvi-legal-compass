@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,22 +8,47 @@ import {
   Settings,
   BarChart3,
   UserCog,
-  Calendar
+  Calendar,
+  ShieldCheck
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Sidebar = () => {
-  const navItems = [
-    { name: "Dashboard", icon: <BarChart3 className="h-5 w-5" />, path: "/" },
+  const { isAdmin, isLawyer } = useAuth();
+  
+  const commonNavItems = [
+    { name: "Dashboard", icon: <BarChart3 className="h-5 w-5" />, path: "/dashboard" },
     { name: "Cases", icon: <Briefcase className="h-5 w-5" />, path: "/cases" },
-    { name: "Clients", icon: <Users className="h-5 w-5" />, path: "/clients" },
-    { name: "Documents", icon: <FilePlus className="h-5 w-5" />, path: "/documents" },
     { name: "Calendar", icon: <Calendar className="h-5 w-5" />, path: "/calendar" },
-    { name: "Billing", icon: <CreditCard className="h-5 w-5" />, path: "/billing" },
+  ];
+
+  const adminItems = [
+    { name: "Admin Panel", icon: <ShieldCheck className="h-5 w-5" />, path: "/admin" },
+    { name: "Clients", icon: <Users className="h-5 w-5" />, path: "/clients" },
     { name: "Staff", icon: <UserCog className="h-5 w-5" />, path: "/staff" },
+  ];
+
+  const lawyerItems = [
+    { name: "Clients", icon: <Users className="h-5 w-5" />, path: "/clients" },
+  ];
+
+  const otherItems = [
+    { name: "Documents", icon: <FilePlus className="h-5 w-5" />, path: "/documents" },
+    { name: "Billing", icon: <CreditCard className="h-5 w-5" />, path: "/billing" },
     { name: "Settings", icon: <Settings className="h-5 w-5" />, path: "/settings" },
   ];
+
+  let navItems = [...commonNavItems];
+  
+  if (isAdmin) {
+    navItems = [...navItems, ...adminItems];
+  } else if (isLawyer) {
+    navItems = [...navItems, ...lawyerItems];
+  }
+  
+  navItems = [...navItems, ...otherItems];
 
   return (
     <aside className="w-64 border-r bg-white dark:bg-law-dark h-[calc(100vh-4rem)] shrink-0">

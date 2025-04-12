@@ -11,29 +11,35 @@ export type Database = {
     Tables: {
       cases: {
         Row: {
+          case_status: string | null
           client_id: string
           created_at: string
           description: string | null
           id: string
           lawyer_id: string | null
+          next_hearing_date: string | null
           status: string
           title: string
         }
         Insert: {
+          case_status?: string | null
           client_id: string
           created_at?: string
           description?: string | null
           id?: string
           lawyer_id?: string | null
+          next_hearing_date?: string | null
           status: string
           title: string
         }
         Update: {
+          case_status?: string | null
           client_id?: string
           created_at?: string
           description?: string | null
           id?: string
           lawyer_id?: string | null
+          next_hearing_date?: string | null
           status?: string
           title?: string
         }

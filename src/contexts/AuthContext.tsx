@@ -12,7 +12,11 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, userData: any) => Promise<void>;
   signOut: () => Promise<void>;
+  createUserAccount: (userData: any) => Promise<void>;
   loading: boolean;
+  isAdmin: boolean;
+  isLawyer: boolean;
+  isClient: boolean;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,7 +26,11 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
+  createUserAccount: async () => {},
   loading: true,
+  isAdmin: false,
+  isLawyer: false,
+  isClient: false,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -30,6 +38,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLawyer, setIsLawyer] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,6 +57,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }, 0);
         } else {
           setProfile(null);
+          setIsAdmin(false);
+          setIsLawyer(false);
+          setIsClient(false);
         }
 
         if (event === 'SIGNED_IN') {
@@ -87,6 +101,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Error fetching profile:", error);
       } else {
         setProfile(data);
+        // Set role-based flags
+        setIsAdmin(data.role === 'admin');
+        setIsLawyer(data.role === 'lawyer');
+        setIsClient(data.role === 'client');
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -124,6 +142,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const createUserAccount = async (userData: any) => {
+    try {
+      // Only allow admins to create user accounts
+      if (!isAdmin) {
+        throw new Error("Only administrators can create user accounts");
+      }
+
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: userData.email,
+        password: userData.password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: userData.fullName,
+          role: userData.role,
+        },
+      });
+
+      if (error) throw error;
+      toast.success(`Account created for ${userData.email}`);
+      return data;
+    } catch (error: any) {
+      toast.error(`Error creating user account: ${error.message}`);
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -143,7 +187,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signIn,
         signUp,
         signOut,
+        createUserAccount,
         loading,
+        isAdmin,
+        isLawyer,
+        isClient,
       }}
     >
       {children}
