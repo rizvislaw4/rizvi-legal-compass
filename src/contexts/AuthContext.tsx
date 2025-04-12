@@ -12,7 +12,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, userData: any) => Promise<void>;
   signOut: () => Promise<void>;
-  createUserAccount: (userData: any) => Promise<void>;
+  createUserAccount: (userData: any) => Promise<any>; // Changed return type to Promise<any>
   loading: boolean;
   isAdmin: boolean;
   isLawyer: boolean;
@@ -26,7 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
-  createUserAccount: async () => {},
+  createUserAccount: async () => null, // Updated default value to return null
   loading: true,
   isAdmin: false,
   isLawyer: false,
@@ -161,7 +161,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) throw error;
       toast.success(`Account created for ${userData.email}`);
-      return data;
+      return data; // This return value must match the return type in the interface
     } catch (error: any) {
       toast.error(`Error creating user account: ${error.message}`);
       throw error;
