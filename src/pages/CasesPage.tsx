@@ -60,13 +60,13 @@ const CasesPage = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   
   const navigate = useNavigate();
-  const { isAdmin, isLawyer, user } = useAuth();
+  const { isAdmin, isLawyer, isClient, user } = useAuth();
   
   const fetchCases = async () => {
     setLoading(true);
     try {
-      // Build the query
-      let query = supabase
+      // Let RLS handle the filtering based on user role
+      const { data, error } = await supabase
         .from('cases')
         .select(`
           id, 
@@ -76,18 +76,6 @@ const CasesPage = () => {
           next_hearing_date,
           profiles!client_id (full_name)
         `);
-
-      // If user is a lawyer and not an admin, only show their cases
-      if (isLawyer && !isAdmin && user) {
-        query = query.eq('lawyer_id', user.id);
-      }
-      
-      // If user is a client, only show their cases
-      if (!isLawyer && !isAdmin && user) {
-        query = query.eq('client_id', user.id);
-      }
-
-      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -134,7 +122,8 @@ const CasesPage = () => {
     return matchesSearch && matchesStatus;
   });
   
-  console.log("User roles:", { isAdmin, isLawyer });
+  // Determine if user can add new cases based on role
+  const canAddCase = isAdmin || isLawyer;
 
   return (
     <AppLayout>
@@ -150,7 +139,7 @@ const CasesPage = () => {
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            {(isAdmin || isLawyer) && (
+            {canAddCase && (
               <Button 
                 size="sm" 
                 className="bg-law-primary hover:bg-law-primary/90"
@@ -247,7 +236,7 @@ const CasesPage = () => {
                           >
                             View Details
                           </DropdownMenuItem>
-                          {(isAdmin || isLawyer) && (
+                          {canAddCase && (
                             <>
                               <DropdownMenuItem
                                 onClick={() => {
