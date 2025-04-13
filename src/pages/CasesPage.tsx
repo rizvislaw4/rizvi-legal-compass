@@ -1,6 +1,6 @@
 
 import AppLayout from "@/components/layouts/AppLayout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -23,55 +23,16 @@ import {
   MoreHorizontal, 
   Plus, 
   Printer,
-  Search
+  Search,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-
-// Mock data
-const cases = [
-  {
-    id: "CASE-001",
-    title: "Singh vs. Patel Property Dispute",
-    client: "Raj Singh",
-    status: "Active",
-    nextHearing: "2025-05-10",
-    filedDate: "2025-03-15",
-  },
-  {
-    id: "CASE-002",
-    title: "Mehta Corporate Restructuring",
-    client: "Mehta Industries Ltd.",
-    status: "On Hold",
-    nextHearing: "2025-06-22",
-    filedDate: "2025-02-10",
-  },
-  {
-    id: "CASE-003",
-    title: "State vs. Kumar",
-    client: "Anil Kumar",
-    status: "Pending",
-    nextHearing: "2025-04-30",
-    filedDate: "2025-03-22",
-  },
-  {
-    id: "CASE-004",
-    title: "Sharma Family Trust",
-    client: "Sharma Family",
-    status: "Closed",
-    nextHearing: "-",
-    filedDate: "2024-11-15",
-  },
-  {
-    id: "CASE-005",
-    title: "Jain vs. City Municipal Corp",
-    client: "Vimal Jain",
-    status: "Active",
-    nextHearing: "2025-05-05",
-    filedDate: "2025-01-20",
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import CaseForm from "@/components/case/CaseForm";
 
 const statusColors: Record<string, string> = {
   Active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
@@ -80,10 +41,81 @@ const statusColors: Record<string, string> = {
   Closed: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
 };
 
+type Case = {
+  id: string;
+  title: string;
+  client: {
+    full_name: string;
+  };
+  case_status: string;
+  next_hearing_date: string | null;
+  created_at: string;
+};
+
 const CasesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
+  const [cases, setCases] = useState<Case[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAddCaseOpen, setIsAddCaseOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  
+  const { toast: toastUI } = useToast();
   const navigate = useNavigate();
+  const { isAdmin, isLawyer, user } = useAuth();
+  
+  const fetchCases = async () => {
+    setLoading(true);
+    try {
+      // Build the query
+      let query = supabase
+        .from('cases')
+        .select(`
+          id, 
+          title, 
+          case_status,
+          created_at,
+          next_hearing_date,
+          profiles!client_id (full_name)
+        `);
+
+      // If user is a lawyer and not an admin, only show their cases
+      if (isLawyer && !isAdmin && user) {
+        query = query.eq('lawyer_id', user.id);
+      }
+      
+      // If user is a client, only show their cases
+      if (!isLawyer && !isAdmin && user) {
+        query = query.eq('client_id', user.id);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      // Transform data to match our Case type
+      const formattedCases = data.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        client: {
+          full_name: item.profiles?.full_name || "Unknown Client"
+        },
+        case_status: item.case_status || "Pending",
+        next_hearing_date: item.next_hearing_date,
+        created_at: new Date(item.created_at).toISOString().split('T')[0]
+      }));
+      
+      setCases(formattedCases);
+    } catch (error: any) {
+      toast.error(`Error fetching cases: ${error.message}`);
+      console.error("Error fetching cases:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchCases();
+  }, [user, isLawyer, isAdmin]);
   
   const handlePrint = () => {
     toast({
@@ -93,11 +125,18 @@ const CasesPage = () => {
     window.print();
   };
   
-  const filteredCases = cases.filter((c) =>
-    c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCases = cases.filter((c) => {
+    // Apply search filter
+    const matchesSearch = 
+      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.client.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.id.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Apply status filter if selected
+    const matchesStatus = statusFilter ? c.case_status === statusFilter : true;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <AppLayout>
@@ -113,19 +152,16 @@ const CasesPage = () => {
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            <Button 
-              size="sm" 
-              className="bg-law-primary hover:bg-law-primary/90"
-              onClick={() => {
-                toast({
-                  title: "New Case",
-                  description: "This would open the case creation form in a real app"
-                });
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Case
-            </Button>
+            {(isAdmin || isLawyer) && (
+              <Button 
+                size="sm" 
+                className="bg-law-primary hover:bg-law-primary/90"
+                onClick={() => setIsAddCaseOpen(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Case
+              </Button>
+            )}
           </div>
         </div>
 
@@ -152,11 +188,11 @@ const CasesPage = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>All</DropdownMenuItem>
-                <DropdownMenuItem>Active</DropdownMenuItem>
-                <DropdownMenuItem>Pending</DropdownMenuItem>
-                <DropdownMenuItem>On Hold</DropdownMenuItem>
-                <DropdownMenuItem>Closed</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter(null)}>All</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("Active")}>Active</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("Pending")}>Pending</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("On Hold")}>On Hold</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("Closed")}>Closed</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -176,19 +212,27 @@ const CasesPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCases.length > 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    <div className="flex justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-law-primary" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredCases.length > 0 ? (
                 filteredCases.map((caseItem) => (
                   <TableRow key={caseItem.id}>
-                    <TableCell className="font-medium">{caseItem.id}</TableCell>
+                    <TableCell className="font-medium">{caseItem.id.slice(0, 8)}</TableCell>
                     <TableCell>{caseItem.title}</TableCell>
-                    <TableCell>{caseItem.client}</TableCell>
+                    <TableCell>{caseItem.client.full_name}</TableCell>
                     <TableCell>
-                      <Badge className={statusColors[caseItem.status]}>
-                        {caseItem.status}
+                      <Badge className={statusColors[caseItem.case_status] || statusColors["Pending"]}>
+                        {caseItem.case_status || "Pending"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{caseItem.nextHearing}</TableCell>
-                    <TableCell>{caseItem.filedDate}</TableCell>
+                    <TableCell>{caseItem.next_hearing_date || "-"}</TableCell>
+                    <TableCell>{caseItem.created_at}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -201,32 +245,37 @@ const CasesPage = () => {
                             onClick={() => {
                               toast({
                                 title: "View Case",
-                                description: `Viewing details for ${caseItem.id}`
+                                description: `Viewing details for ${caseItem.id.slice(0, 8)}`
                               });
+                              // In a real app, navigate to case details page
                             }}
                           >
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast({
-                                title: "Edit Case",
-                                description: `Editing ${caseItem.id}`
-                              });
-                            }}
-                          >
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast({
-                                title: "Update Status",
-                                description: `Updating status for ${caseItem.id}`
-                              });
-                            }}
-                          >
-                            Update Status
-                          </DropdownMenuItem>
+                          {(isAdmin || isLawyer) && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  toast({
+                                    title: "Edit Case",
+                                    description: `Editing ${caseItem.id.slice(0, 8)}`
+                                  });
+                                }}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  toast({
+                                    title: "Update Status",
+                                    description: `Updating status for ${caseItem.id.slice(0, 8)}`
+                                  });
+                                }}
+                              >
+                                Update Status
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -243,6 +292,19 @@ const CasesPage = () => {
           </Table>
         </div>
       </div>
+
+      {/* Add Case Dialog */}
+      <Dialog open={isAddCaseOpen} onOpenChange={setIsAddCaseOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add New Case</DialogTitle>
+          </DialogHeader>
+          <CaseForm onSuccess={() => {
+            setIsAddCaseOpen(false);
+            fetchCases();
+          }} />
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
