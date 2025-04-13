@@ -133,6 +133,8 @@ const CasesPage = () => {
     
     return matchesSearch && matchesStatus;
   });
+  
+  console.log("User roles:", { isAdmin, isLawyer });
 
   return (
     <AppLayout>
