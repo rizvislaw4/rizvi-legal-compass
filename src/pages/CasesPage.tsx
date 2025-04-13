@@ -59,7 +59,6 @@ const CasesPage = () => {
   const [isAddCaseOpen, setIsAddCaseOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   
-  const { toast: toastUI } = useToast();
   const navigate = useNavigate();
   const { isAdmin, isLawyer, user } = useAuth();
   
@@ -118,10 +117,7 @@ const CasesPage = () => {
   }, [user, isLawyer, isAdmin]);
   
   const handlePrint = () => {
-    toast({
-      title: "Printing Cases",
-      description: "Case list sent to printer"
-    });
+    toast.success("Case list sent to printer");
     window.print();
   };
   
@@ -243,10 +239,7 @@ const CasesPage = () => {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
                             onClick={() => {
-                              toast({
-                                title: "View Case",
-                                description: `Viewing details for ${caseItem.id.slice(0, 8)}`
-                              });
+                              toast.info("Viewing details for " + caseItem.id.slice(0, 8));
                               // In a real app, navigate to case details page
                             }}
                           >
@@ -256,20 +249,14 @@ const CasesPage = () => {
                             <>
                               <DropdownMenuItem
                                 onClick={() => {
-                                  toast({
-                                    title: "Edit Case",
-                                    description: `Editing ${caseItem.id.slice(0, 8)}`
-                                  });
+                                  toast.info("Editing " + caseItem.id.slice(0, 8));
                                 }}
                               >
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
-                                  toast({
-                                    title: "Update Status",
-                                    description: `Updating status for ${caseItem.id.slice(0, 8)}`
-                                  });
+                                  toast.info("Updating status for " + caseItem.id.slice(0, 8));
                                 }}
                               >
                                 Update Status
