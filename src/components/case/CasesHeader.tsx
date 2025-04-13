@@ -5,10 +5,14 @@ import { Printer, Plus } from "lucide-react";
 interface CasesHeaderProps {
   onAddCase: () => void;
   onPrint: () => void;
-  canAddCase: boolean;
+  canAddCase?: boolean; // Make this optional with a default value
 }
 
-const CasesHeader = ({ onAddCase, onPrint, canAddCase }: CasesHeaderProps) => {
+const CasesHeader = ({ 
+  onAddCase, 
+  onPrint, 
+  canAddCase = true // Default to true so button is always visible
+}: CasesHeaderProps) => {
   return (
     <div className="flex justify-between items-center">
       <h1 className="text-2xl font-bold">Case Management</h1>
