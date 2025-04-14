@@ -103,6 +103,15 @@ const CalendarPage = () => {
     }
   };
 
+  // Function to check if a date has events
+  const hasEvents = (day: Date) => {
+    return events.some(event => 
+      event.date.getDate() === day.getDate() &&
+      event.date.getMonth() === day.getMonth() &&
+      event.date.getFullYear() === day.getFullYear()
+    );
+  };
+
   return (
     <AppLayout>
       <div className="flex justify-between items-center mb-6">
@@ -133,12 +142,7 @@ const CalendarPage = () => {
                 className="rounded-md border p-3 pointer-events-auto"
                 disabled={isLoading}
                 modifiers={{
-                  event: dates => 
-                    dates.some(d => events.some(event => 
-                      event.date.getDate() === d.getDate() &&
-                      event.date.getMonth() === d.getMonth() &&
-                      event.date.getFullYear() === d.getFullYear()
-                    ))
+                  event: (date) => hasEvents(date)
                 }}
                 modifiersClassNames={{
                   event: "bg-law-primary text-white font-bold"
