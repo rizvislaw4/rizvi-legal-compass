@@ -6,10 +6,12 @@ import AppLayout from "@/components/layouts/AppLayout";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import DailyCasesList from "@/components/case/DailyCasesList";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const { toast } = useToast();
   const { profile, isAdmin, isLawyer, isClient } = useAuth();
+  const navigate = useNavigate();
   
   const handlePrint = () => {
     toast({
@@ -140,7 +142,13 @@ const Dashboard = () => {
               ))}
             </CardContent>
             <CardFooter>
-              <Button variant="outline" className="w-full">View Calendar</Button>
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => navigate('/calendar')}
+              >
+                View Calendar
+              </Button>
             </CardFooter>
           </Card>
         )}

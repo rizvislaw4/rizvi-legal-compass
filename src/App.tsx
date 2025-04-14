@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import CasesPage from "./pages/CasesPage";
 import ClientsPage from "./pages/ClientsPage";
 import BillingPage from "./pages/BillingPage";
+import CalendarPage from "./pages/CalendarPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import AdminPage from "./pages/AdminPage";
@@ -35,6 +36,7 @@ const App = () => (
               {/* Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/cases" element={<ProtectedRoute><CasesPage /></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
               <Route path="/clients" element={
                 <ProtectedRoute requiredRole="admin">
                   <ClientsPage />
@@ -46,7 +48,6 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/documents" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> {/* Placeholder */}
-              <Route path="/calendar" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> {/* Placeholder */}
               <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
               <Route path="/staff" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> {/* Placeholder */}
               <Route path="/settings" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> {/* Placeholder */}
