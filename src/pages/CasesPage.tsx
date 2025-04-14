@@ -1,15 +1,16 @@
 
-import AppLayout from "@/components/layouts/AppLayout";
 import { useState, useEffect } from "react";
+import AppLayout from "@/components/layouts/AppLayout";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import CaseForm from "@/components/case/CaseForm";
+import { toast } from "sonner";
+
 import CasesHeader from "@/components/case/CasesHeader";
 import CaseFilters from "@/components/case/CaseFilters";
 import CasesTable from "@/components/case/CasesTable";
+import CaseForm from "@/components/case/CaseForm";
 import statusColors from "@/utils/caseStatusColors";
 
 type Case = {
@@ -24,19 +25,22 @@ type Case = {
 };
 
 const CasesPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAddCaseOpen, setIsAddCaseOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [isAddCaseOpen, setIsAddCaseOpen] = useState(false);
   
   const navigate = useNavigate();
   const { isAdmin, isLawyer, isClient, user } = useAuth();
   
+  // Determine if user can add new cases based on role
+  const canAddCase = isAdmin || isLawyer;
+
   const fetchCases = async () => {
     setLoading(true);
     try {
-      // Let RLS handle the filtering based on user role
+      // Fetch cases from supabase
       const { data, error } = await supabase
         .from('cases')
         .select(`
@@ -73,7 +77,7 @@ const CasesPage = () => {
   
   useEffect(() => {
     fetchCases();
-  }, [user, isLawyer, isAdmin]);
+  }, [user]);
   
   const handlePrint = () => {
     toast.success("Case list sent to printer");
@@ -92,9 +96,6 @@ const CasesPage = () => {
     
     return matchesSearch && matchesStatus;
   });
-  
-  // Determine if user can add new cases based on role
-  const canAddCase = isAdmin || isLawyer;
 
   return (
     <AppLayout>

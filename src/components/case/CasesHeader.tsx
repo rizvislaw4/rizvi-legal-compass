@@ -5,7 +5,7 @@ import { Printer, Plus } from "lucide-react";
 interface CasesHeaderProps {
   onAddCase: () => void;
   onPrint: () => void;
-  canAddCase?: boolean; // Make this optional with a default value
+  canAddCase?: boolean; // Optional with default value
 }
 
 const CasesHeader = ({ 
