@@ -28,8 +28,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { NewInvoiceForm } from "@/components/billing/NewInvoiceForm";
 
-// Mock data
 const invoices = [
   {
     id: "INV-001",
@@ -123,19 +123,7 @@ const BillingPage = () => {
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            <Button 
-              size="sm" 
-              className="bg-law-primary hover:bg-law-primary/90"
-              onClick={() => {
-                toast({
-                  title: "New Invoice",
-                  description: "This would open the invoice creation form in a real app"
-                });
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Invoice
-            </Button>
+            <NewInvoiceForm />
           </div>
         </div>
 
