@@ -40,7 +40,7 @@ const CasesPage = () => {
   const fetchCases = async () => {
     setLoading(true);
     try {
-      // Fetch cases from supabase
+      // Fetch cases from supabase with simplified query to avoid recursion issues
       const { data, error } = await supabase
         .from('cases')
         .select(`
@@ -49,17 +49,37 @@ const CasesPage = () => {
           case_status,
           created_at,
           next_hearing_date,
-          profiles!client_id (full_name)
+          client_id
         `);
       
       if (error) throw error;
+      
+      // Manually fetch client names in a separate query to avoid recursion
+      const clientIds = data.map(item => item.client_id);
+      const { data: clientData, error: clientError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', clientIds);
+      
+      if (clientError) {
+        console.error("Error fetching clients:", clientError);
+        // Continue with partial data
+      }
+      
+      // Create a map of client IDs to names for quick lookup
+      const clientMap = new Map();
+      if (clientData) {
+        clientData.forEach(client => {
+          clientMap.set(client.id, client.full_name);
+        });
+      }
       
       // Transform data to match our Case type
       const formattedCases = data.map((item: any) => ({
         id: item.id,
         title: item.title,
         client: {
-          full_name: item.profiles?.full_name || "Unknown Client"
+          full_name: clientMap.get(item.client_id) || "Unknown Client"
         },
         case_status: item.case_status || "Pending",
         next_hearing_date: item.next_hearing_date,

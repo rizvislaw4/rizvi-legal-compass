@@ -43,6 +43,8 @@ export default function CaseForm({ onSuccess, initialData }: CaseFormProps) {
   const { isLawyer, isAdmin, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [clients, setClients] = useState<{ id: string; full_name: string }[]>([]);
+  const [clientsLoading, setClientsLoading] = useState(true);
+  const [clientsError, setClientsError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof caseFormSchema>>({
     resolver: zodResolver(caseFormSchema),
@@ -55,10 +57,13 @@ export default function CaseForm({ onSuccess, initialData }: CaseFormProps) {
     },
   });
 
-  // Fetch available clients
+  // Fetch available clients with basic error handling and retry logic
   useEffect(() => {
     const fetchClients = async () => {
+      setClientsLoading(true);
+      setClientsError(null);
       try {
+        // Simplified query to avoid recursion issues
         const { data, error } = await supabase
           .from('profiles')
           .select('id, full_name')
@@ -68,7 +73,17 @@ export default function CaseForm({ onSuccess, initialData }: CaseFormProps) {
         setClients(data || []);
       } catch (error: any) {
         console.error("Error fetching clients:", error);
+        setClientsError("Could not load clients. Please try again.");
         toast.error(`Error loading clients: ${error.message}`);
+        
+        // Retry after a short delay
+        setTimeout(() => {
+          if (clients.length === 0) {
+            fetchClients();
+          }
+        }, 3000);
+      } finally {
+        setClientsLoading(false);
       }
     };
 
@@ -147,19 +162,33 @@ export default function CaseForm({ onSuccess, initialData }: CaseFormProps) {
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
-                disabled={isLoading || !canCreateCase}
+                disabled={isLoading || clientsLoading || !canCreateCase}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select client" />
+                    <SelectValue placeholder={clientsLoading ? "Loading clients..." : "Select client"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.full_name}
+                  {clientsError ? (
+                    <SelectItem value="error" disabled>
+                      Error loading clients
                     </SelectItem>
-                  ))}
+                  ) : clientsLoading ? (
+                    <SelectItem value="loading" disabled>
+                      Loading...
+                    </SelectItem>
+                  ) : clients.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      No clients available
+                    </SelectItem>
+                  ) : (
+                    clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.full_name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
