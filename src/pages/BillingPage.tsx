@@ -1,34 +1,12 @@
-import AppLayout from "@/components/layouts/AppLayout";
 import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import AppLayout from "@/components/layouts/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  ChevronDown, 
-  Filter, 
-  MoreHorizontal, 
-  Plus, 
-  Printer,
-  Search,
-  Download
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Printer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { NewInvoiceForm } from "@/components/billing/NewInvoiceForm";
+import { BillingSummaryCards } from "@/components/billing/BillingSummaryCards";
+import { BillingFilters } from "@/components/billing/BillingFilters";
+import { InvoicesTable } from "@/components/billing/InvoicesTable";
 
 const invoices = [
   {
@@ -78,14 +56,7 @@ const invoices = [
   },
 ];
 
-const statusColors: Record<string, string> = {
-  Paid: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  Partial: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  Pending: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  Overdue: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-};
-
-const BillingPage = () => {
+export default function BillingPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   
@@ -102,12 +73,6 @@ const BillingPage = () => {
     inv.caseId.toLowerCase().includes(searchTerm.toLowerCase()) ||
     inv.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Calculate summary data
-  const totalAmount = "₹335,000";
-  const paidAmount = "₹45,000";
-  const pendingAmount = "₹205,000";
-  const overdueAmount = "₹85,000";
 
   return (
     <AppLayout>
@@ -127,164 +92,20 @@ const BillingPage = () => {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Invoiced</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalAmount}</div>
-              <p className="text-xs text-muted-foreground mt-1">From 5 clients</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Paid</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{paidAmount}</div>
-              <p className="text-xs text-muted-foreground mt-1">13% of total</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{pendingAmount}</div>
-              <p className="text-xs text-muted-foreground mt-1">61% of total</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{overdueAmount}</div>
-              <p className="text-xs text-muted-foreground mt-1">26% of total</p>
-            </CardContent>
-          </Card>
-        </div>
+        <BillingSummaryCards
+          totalAmount="₹335,000"
+          paidAmount="₹45,000"
+          pendingAmount="₹205,000"
+          overdueAmount="₹85,000"
+        />
 
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search invoices..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <Button variant="outline" size="sm" className="flex-1 md:flex-none">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex-1 md:flex-none">
-                  Status
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>All</DropdownMenuItem>
-                <DropdownMenuItem>Paid</DropdownMenuItem>
-                <DropdownMenuItem>Partial</DropdownMenuItem>
-                <DropdownMenuItem>Pending</DropdownMenuItem>
-                <DropdownMenuItem>Overdue</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+        <BillingFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice ID</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Case ID</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Invoice Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[80px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvoices.length > 0 ? (
-                filteredInvoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.client}</TableCell>
-                    <TableCell>{invoice.caseId}</TableCell>
-                    <TableCell>{invoice.amount}</TableCell>
-                    <TableCell>{invoice.date}</TableCell>
-                    <TableCell>{invoice.dueDate}</TableCell>
-                    <TableCell>
-                      <Badge className={statusColors[invoice.status]}>
-                        {invoice.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast({
-                                title: "View Invoice",
-                                description: `Viewing details for ${invoice.id}`
-                              });
-                            }}
-                          >
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast({
-                                title: "Download Invoice",
-                                description: `Downloading ${invoice.id}`
-                              });
-                            }}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download PDF
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast({
-                                title: "Update Payment",
-                                description: `Updating payment status for ${invoice.id}`
-                              });
-                            }}
-                          >
-                            Update Payment
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center">
-                    No invoices found matching your search criteria.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <InvoicesTable invoices={filteredInvoices} />
       </div>
     </AppLayout>
   );
-};
-
-export default BillingPage;
+}
