@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { Moon, Sun, User, Menu, Search, Bell } from "lucide-react";
@@ -7,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
 import UserMenu from "./UserMenu";
 import { useToast } from "@/hooks/use-toast";
+import NotificationsPopover from "../notifications/NotificationsPopover";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -68,21 +68,7 @@ const Header = () => {
             <Search className="h-5 w-5" />
           </Button>
           
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Notifications"
-            className="relative"
-            onClick={() => {
-              toast({
-                title: "Notifications",
-                description: "Notifications functionality coming soon",
-              });
-            }}
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-          </Button>
+          <NotificationsPopover />
           
           <Button
             variant="ghost"
@@ -102,6 +88,6 @@ const Header = () => {
       </div>
     </header>
   );
-};
+}
 
 export default Header;
