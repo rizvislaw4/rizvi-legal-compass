@@ -7,6 +7,7 @@ import Sidebar from "./Sidebar";
 import UserMenu from "./UserMenu";
 import { useToast } from "@/hooks/use-toast";
 import NotificationsPopover from "../notifications/NotificationsPopover";
+import { GlobalSearch } from "@/components/search/GlobalSearch";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -53,20 +54,7 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Search"
-            className="relative"
-            onClick={() => {
-              toast({
-                title: "Search",
-                description: "Search functionality coming soon",
-              });
-            }}
-          >
-            <Search className="h-5 w-5" />
-          </Button>
+          <GlobalSearch />
           
           <NotificationsPopover />
           
