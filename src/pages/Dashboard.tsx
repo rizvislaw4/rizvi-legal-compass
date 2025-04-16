@@ -32,6 +32,27 @@ const Dashboard = () => {
     }
   });
   
+  // Fetch upcoming hearings
+  const { data: upcomingHearings = [], isLoading: isLoadingHearings } = useQuery({
+    queryKey: ['upcoming-hearings'],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('cases')
+        .select('id, title, next_hearing_date')
+        .gte('next_hearing_date', today)
+        .order('next_hearing_date', { ascending: true })
+        .limit(3);
+      
+      if (error) {
+        console.error('Error fetching upcoming hearings:', error);
+        throw error;
+      }
+      
+      return data || [];
+    }
+  });
+  
   const handlePrint = () => {
     toast({
       title: "Printing Dashboard",
@@ -77,8 +98,14 @@ const Dashboard = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground mt-1">Next: Tomorrow, 10:00 AM</p>
+            <div className="text-2xl font-bold">
+              {isLoadingHearings ? "..." : upcomingHearings.length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {upcomingHearings[0] 
+                ? `Next: ${new Date(upcomingHearings[0].next_hearing_date).toLocaleDateString()}`
+                : "No upcoming hearings"}
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -150,19 +177,30 @@ const Dashboard = () => {
               <CardDescription>Your schedule for the next 7 days</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between border-b pb-2 last:border-0">
-                  <div className="space-y-1">
-                    <p className="font-medium">State vs. Mehta</p>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="mr-1 h-3 w-3" /> Tomorrow, 11:30 AM
+              {isLoadingHearings ? (
+                <div className="text-center text-muted-foreground">Loading hearings...</div>
+              ) : upcomingHearings.length > 0 ? (
+                upcomingHearings.map((hearing) => (
+                  <div key={hearing.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+                    <div className="space-y-1">
+                      <p className="font-medium">{hearing.title}</p>
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Calendar className="mr-1 h-3 w-3" />
+                        {new Date(hearing.next_hearing_date).toLocaleDateString()}
+                      </div>
                     </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => navigate(`/cases/${hearing.id}`)}
+                    >
+                      View
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    View
-                  </Button>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground">No upcoming hearings</div>
+              )}
             </CardContent>
             <CardFooter>
               <Button 
