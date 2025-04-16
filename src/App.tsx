@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,17 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-
-// Pages
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import CasesPage from "./pages/CasesPage";
-import ClientsPage from "./pages/ClientsPage";
-import BillingPage from "./pages/BillingPage";
-import CalendarPage from "./pages/CalendarPage";
-import AuthPage from "./pages/AuthPage";
-import NotFound from "./pages/NotFound";
-import AdminPage from "./pages/AdminPage";
+import ActiveCasesPage from "./pages/ActiveCasesPage";
 
 const queryClient = new QueryClient();
 
@@ -33,7 +22,6 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<AuthPage />} />
               
-              {/* Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/cases" element={<ProtectedRoute><CasesPage /></ProtectedRoute>} />
               <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
@@ -47,12 +35,16 @@ const App = () => (
                   <AdminPage />
                 </ProtectedRoute>
               } />
-              <Route path="/documents" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> {/* Placeholder */}
+              <Route path="/documents" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
-              <Route path="/staff" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> {/* Placeholder */}
-              <Route path="/settings" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> {/* Placeholder */}
+              <Route path="/staff" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/active-cases" element={
+                <ProtectedRoute>
+                  <ActiveCasesPage />
+                </ProtectedRoute>
+              } />
               
-              {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
