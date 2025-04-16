@@ -13,8 +13,8 @@ import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const invoiceSchema = z.object({
-  amount: z.string().min(1, "Amount is required"),
   case_id: z.string().min(1, "Case is required"),
+  amount: z.string().min(1, "Amount is required"),
   due_date: z.string().min(1, "Due date is required"),
 });
 
@@ -29,8 +29,8 @@ export function NewInvoiceForm() {
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
-      amount: "",
       case_id: "",
+      amount: "",
       due_date: "",
     },
   });
@@ -48,11 +48,20 @@ export function NewInvoiceForm() {
     setCases(data || []);
   };
 
+  const generateInvoiceId = (caseId: string) => {
+    const caseNumber = caseId.split('-')[1] || '000';
+    const timestamp = Date.now().toString().slice(-4);
+    return `INV-${caseNumber}-${timestamp}`;
+  };
+
   const onSubmit = async (data: InvoiceFormValues) => {
     try {
+      const invoiceId = generateInvoiceId(data.case_id);
+      
       const { error } = await supabase
         .from("invoices")
         .insert({
+          id: invoiceId,
           amount: parseFloat(data.amount),
           case_id: data.case_id,
           due_date: data.due_date,
@@ -63,13 +72,10 @@ export function NewInvoiceForm() {
 
       toast({
         title: "Success",
-        description: "Invoice created successfully",
+        description: `Invoice ${invoiceId} created successfully`,
       });
 
-      // Refresh the invoices list
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      
-      // Close the dialog and reset form
       setOpen(false);
       form.reset();
 
@@ -162,3 +168,4 @@ export function NewInvoiceForm() {
     </Dialog>
   );
 }
+

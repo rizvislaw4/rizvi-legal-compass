@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import AppLayout from "@/components/layouts/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
@@ -7,59 +8,73 @@ import { NewInvoiceForm } from "@/components/billing/NewInvoiceForm";
 import { BillingSummaryCards } from "@/components/billing/BillingSummaryCards";
 import { BillingFilters } from "@/components/billing/BillingFilters";
 import { InvoicesTable } from "@/components/billing/InvoicesTable";
+import { supabase } from "@/integrations/supabase/client";
 
-const invoices = [
-  {
-    id: "INV-001",
-    client: "Raj Singh",
-    caseId: "CASE-001",
-    amount: "₹45,000",
-    date: "2025-03-15",
-    dueDate: "2025-04-15",
-    status: "Paid",
-  },
-  {
-    id: "INV-002",
-    client: "Mehta Industries Ltd.",
-    caseId: "CASE-002",
-    amount: "₹120,000",
-    date: "2025-03-10",
-    dueDate: "2025-04-10",
-    status: "Partial",
-  },
-  {
-    id: "INV-003",
-    client: "Anil Kumar",
-    caseId: "CASE-003",
-    amount: "₹35,000",
-    date: "2025-03-22",
-    dueDate: "2025-04-22",
-    status: "Pending",
-  },
-  {
-    id: "INV-004",
-    client: "Sharma Family",
-    caseId: "CASE-004",
-    amount: "₹85,000",
-    date: "2025-02-15",
-    dueDate: "2025-03-15",
-    status: "Overdue",
-  },
-  {
-    id: "INV-005",
-    client: "Vimal Jain",
-    caseId: "CASE-005",
-    amount: "₹50,000",
-    date: "2025-03-20",
-    dueDate: "2025-04-20",
-    status: "Pending",
-  },
-];
+interface Invoice {
+  id: string;
+  client: string;
+  caseId: string;
+  amount: string;
+  date: string;
+  dueDate: string;
+  status: string;
+}
 
 export default function BillingPage() {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
+  const fetchInvoices = async () => {
+    try {
+      const { data: invoicesData, error } = await supabase
+        .from('invoices')
+        .select(`
+          id,
+          amount,
+          created_at,
+          due_date,
+          status,
+          case_id,
+          cases (
+            id,
+            client_id,
+            profiles (
+              full_name
+            )
+          )
+        `);
+
+      if (error) throw error;
+
+      const formattedInvoices = invoicesData.map(invoice => ({
+        id: invoice.id,
+        client: invoice.cases?.profiles?.full_name || 'Unknown Client',
+        caseId: invoice.case_id,
+        amount: `₹${invoice.amount.toLocaleString()}`,
+        date: new Date(invoice.created_at).toLocaleDateString(),
+        dueDate: new Date(invoice.due_date).toLocaleDateString(),
+        status: invoice.status
+      }));
+
+      setInvoices(formattedInvoices);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch invoices",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
   const handlePrint = () => {
     toast({
       title: "Printing Invoices",
@@ -73,6 +88,15 @@ export default function BillingPage() {
     inv.caseId.toLowerCase().includes(searchTerm.toLowerCase()) ||
     inv.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Calculate summary amounts
+  const totalAmount = invoices.reduce((sum, inv) => sum + parseFloat(inv.amount.replace('₹', '').replace(',', '')), 0);
+  const paidAmount = invoices.filter(inv => inv.status === 'Paid')
+    .reduce((sum, inv) => sum + parseFloat(inv.amount.replace('₹', '').replace(',', '')), 0);
+  const pendingAmount = invoices.filter(inv => inv.status === 'Pending')
+    .reduce((sum, inv) => sum + parseFloat(inv.amount.replace('₹', '').replace(',', '')), 0);
+  const overdueAmount = invoices.filter(inv => inv.status === 'Overdue')
+    .reduce((sum, inv) => sum + parseFloat(inv.amount.replace('₹', '').replace(',', '')), 0);
 
   return (
     <AppLayout>
@@ -93,10 +117,10 @@ export default function BillingPage() {
         </div>
 
         <BillingSummaryCards
-          totalAmount="₹335,000"
-          paidAmount="₹45,000"
-          pendingAmount="₹205,000"
-          overdueAmount="₹85,000"
+          totalAmount={`₹${totalAmount.toLocaleString()}`}
+          paidAmount={`₹${paidAmount.toLocaleString()}`}
+          pendingAmount={`₹${pendingAmount.toLocaleString()}`}
+          overdueAmount={`₹${overdueAmount.toLocaleString()}`}
         />
 
         <BillingFilters
