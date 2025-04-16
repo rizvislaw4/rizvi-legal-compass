@@ -6,11 +6,13 @@ import { useToast } from "@/hooks/use-toast";
 import CasesHeader from "@/components/case/CasesHeader";
 import CaseFilters from "@/components/case/CaseFilters";
 import CasesTable from "@/components/case/CasesTable";
+import statusColors from "@/utils/caseStatusColors";
 
 export default function ActiveCasesPage() {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchActiveCases = async () => {
@@ -69,11 +71,14 @@ export default function ActiveCasesPage() {
         <CaseFilters
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
+          onStatusFilterChange={setStatusFilter}
         />
 
         <CasesTable
           cases={filteredCases}
           loading={loading}
+          canUpdateCase={true}
+          statusColors={statusColors}
         />
       </div>
     </AppLayout>
