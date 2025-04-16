@@ -40,7 +40,7 @@ export default function BillingPage() {
           cases (
             id,
             client_id,
-            profiles (
+            profiles!cases_client_id_fkey (
               full_name
             )
           )
