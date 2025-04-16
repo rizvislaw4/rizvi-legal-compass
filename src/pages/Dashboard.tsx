@@ -6,11 +6,31 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import DailyCasesList from "@/components/case/DailyCasesList";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { toast } = useToast();
   const { profile, isAdmin, isLawyer, isClient } = useAuth();
   const navigate = useNavigate();
+
+  // Fetch total clients count
+  const { data: totalClients = 0, isLoading: isLoadingClients } = useQuery({
+    queryKey: ['total-clients'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'client');
+      
+      if (error) {
+        console.error('Error fetching clients:', error);
+        throw error;
+      }
+      
+      return count || 0;
+    }
+  });
   
   const handlePrint = () => {
     toast({
@@ -67,8 +87,12 @@ const Dashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">42</div>
-            <p className="text-xs text-muted-foreground mt-1">+5 since last month</p>
+            <div className="text-2xl font-bold">
+              {isLoadingClients ? "..." : totalClients}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Active client accounts
+            </p>
           </CardContent>
         </Card>
         <Card>
