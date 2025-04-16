@@ -52,7 +52,29 @@ const Dashboard = () => {
       return data || [];
     }
   });
-  
+
+  // Fetch pending payments summary
+  const { data: pendingPayments, isLoading: isLoadingPayments } = useQuery({
+    queryKey: ['pending-payments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('amount')
+        .eq('status', 'pending');
+      
+      if (error) {
+        console.error('Error fetching pending payments:', error);
+        throw error;
+      }
+      
+      const totalPending = data.reduce((sum, invoice) => sum + Number(invoice.amount), 0);
+      return {
+        total: totalPending,
+        count: data.length
+      };
+    }
+  });
+
   const handlePrint = () => {
     toast({
       title: "Printing Dashboard",
@@ -128,8 +150,12 @@ const Dashboard = () => {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹185,000</div>
-            <p className="text-xs text-muted-foreground mt-1">From 7 clients</p>
+            <div className="text-2xl font-bold">
+              {isLoadingPayments ? "..." : `₹${pendingPayments?.total?.toLocaleString() || 0}`}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              From {isLoadingPayments ? "..." : pendingPayments?.count || 0} clients
+            </p>
           </CardContent>
         </Card>
       </div>
