@@ -58,20 +58,30 @@ export function CreateClientDialog({ children }: { children: React.ReactNode }) 
     setIsSubmitting(true);
 
     try {
-      // 1. Create the client profile
+      // 1. Create a user in auth.users (which will trigger the creation of a profile)
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: data.email,
+        email_confirm: true,
+        user_metadata: {
+          full_name: data.name,
+        },
+        app_metadata: {
+          role: "client",
+        },
+      });
+
+      if (authError) throw authError;
+
+      // 2. Get the created user's profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .insert({
-          full_name: data.name,
-          email: data.email,
-          role: "client",
-        })
         .select()
+        .eq("id", authData.user.id)
         .single();
 
       if (profileError) throw profileError;
 
-      // 2. Create the initial case for this client
+      // 3. Create the initial case for this client
       const { data: caseData, error: caseError } = await supabase
         .from("cases")
         .insert({
