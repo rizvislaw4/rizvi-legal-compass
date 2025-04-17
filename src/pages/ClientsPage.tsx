@@ -1,3 +1,4 @@
+
 import AppLayout from "@/components/layouts/AppLayout";
 import { useState } from "react";
 import {
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { CreateClientDialog } from "@/components/client/CreateClientDialog";
 
 // Mock data
 const clients = [
@@ -108,19 +110,15 @@ const ClientsPage = () => {
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            <Button 
-              size="sm" 
-              className="bg-law-primary hover:bg-law-primary/90"
-              onClick={() => {
-                toast({
-                  title: "New Client",
-                  description: "This would open the client creation form in a real app"
-                });
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Client
-            </Button>
+            <CreateClientDialog>
+              <Button 
+                size="sm" 
+                className="bg-law-primary hover:bg-law-primary/90"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Client
+              </Button>
+            </CreateClientDialog>
           </div>
         </div>
 

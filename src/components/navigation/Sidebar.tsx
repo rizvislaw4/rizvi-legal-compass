@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,11 +10,13 @@ import {
   BarChart3,
   UserCog,
   Calendar,
-  ShieldCheck
+  ShieldCheck,
+  UserPlus
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
+import { CreateClientDialog } from "@/components/client/CreateClientDialog";
 
 const Sidebar = () => {
   const { isAdmin, isLawyer } = useAuth();
@@ -66,6 +69,18 @@ const Sidebar = () => {
                 {item.name}
               </NavLink>
             ))}
+
+            {/* Add Create Client button for admins and lawyers */}
+            {(isAdmin || isLawyer) && (
+              <div className="mt-4">
+                <CreateClientDialog>
+                  <Button variant="outline" className="w-full flex items-center gap-2 border-dashed">
+                    <UserPlus className="h-4 w-4" />
+                    Create New Client
+                  </Button>
+                </CreateClientDialog>
+              </div>
+            )}
           </div>
         </div>
       </ScrollArea>
