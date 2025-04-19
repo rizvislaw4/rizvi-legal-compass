@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,12 +18,13 @@ import AdminPage from "./pages/AdminPage";
 import BillingPage from "./pages/BillingPage";
 import NotFound from "./pages/NotFound";
 import ActiveCasesPage from "./pages/ActiveCasesPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light">
+    <ThemeProvider defaultTheme="system">
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -50,7 +50,11 @@ const App = () => (
               <Route path="/documents" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
               <Route path="/staff" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              } />
               <Route path="/active-cases" element={
                 <ProtectedRoute>
                   <ActiveCasesPage />
