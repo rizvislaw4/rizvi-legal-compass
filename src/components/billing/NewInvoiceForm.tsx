@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { currencyConfig } from "@/utils/currencyConfig";
 
 const invoiceSchema = z.object({
   case_id: z.string().min(1, "Case is required"),
@@ -137,7 +138,7 @@ export function NewInvoiceForm() {
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount (Rs)</FormLabel>
+                  <FormLabel>Amount ({currencyConfig.symbol})</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" placeholder="Enter amount" {...field} />
                   </FormControl>
