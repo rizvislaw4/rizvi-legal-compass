@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import AppLayout from "@/components/layouts/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -52,7 +51,7 @@ export default function BillingPage() {
         id: invoice.id,
         client: invoice.cases?.profiles?.full_name || 'Unknown Client',
         caseId: invoice.case_id,
-        amount: `₹${invoice.amount.toLocaleString()}`,
+        amount: `Rs ${invoice.amount.toLocaleString()}`,
         date: new Date(invoice.created_at).toLocaleDateString(),
         dueDate: new Date(invoice.due_date).toLocaleDateString(),
         status: invoice.status
@@ -89,14 +88,13 @@ export default function BillingPage() {
     inv.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Calculate summary amounts
-  const totalAmount = invoices.reduce((sum, inv) => sum + parseFloat(inv.amount.replace('₹', '').replace(',', '')), 0);
+  const totalAmount = invoices.reduce((sum, inv) => sum + parseFloat(inv.amount.replace('Rs ', '').replace(',', '')), 0);
   const paidAmount = invoices.filter(inv => inv.status === 'Paid')
-    .reduce((sum, inv) => sum + parseFloat(inv.amount.replace('₹', '').replace(',', '')), 0);
+    .reduce((sum, inv) => sum + parseFloat(inv.amount.replace('Rs ', '').replace(',', '')), 0);
   const pendingAmount = invoices.filter(inv => inv.status === 'Pending')
-    .reduce((sum, inv) => sum + parseFloat(inv.amount.replace('₹', '').replace(',', '')), 0);
+    .reduce((sum, inv) => sum + parseFloat(inv.amount.replace('Rs ', '').replace(',', '')), 0);
   const overdueAmount = invoices.filter(inv => inv.status === 'Overdue')
-    .reduce((sum, inv) => sum + parseFloat(inv.amount.replace('₹', '').replace(',', '')), 0);
+    .reduce((sum, inv) => sum + parseFloat(inv.amount.replace('Rs ', '').replace(',', '')), 0);
 
   return (
     <AppLayout>
@@ -117,10 +115,10 @@ export default function BillingPage() {
         </div>
 
         <BillingSummaryCards
-          totalAmount={`₹${totalAmount.toLocaleString()}`}
-          paidAmount={`₹${paidAmount.toLocaleString()}`}
-          pendingAmount={`₹${pendingAmount.toLocaleString()}`}
-          overdueAmount={`₹${overdueAmount.toLocaleString()}`}
+          totalAmount={`Rs ${totalAmount.toLocaleString()}`}
+          paidAmount={`Rs ${paidAmount.toLocaleString()}`}
+          pendingAmount={`Rs ${pendingAmount.toLocaleString()}`}
+          overdueAmount={`Rs ${overdueAmount.toLocaleString()}`}
         />
 
         <BillingFilters

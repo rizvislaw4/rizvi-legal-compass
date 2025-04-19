@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -138,7 +137,7 @@ export function NewInvoiceForm() {
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount (₹)</FormLabel>
+                  <FormLabel>Amount (Rs)</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" placeholder="Enter amount" {...field} />
                   </FormControl>
@@ -168,4 +167,3 @@ export function NewInvoiceForm() {
     </Dialog>
   );
 }
-
