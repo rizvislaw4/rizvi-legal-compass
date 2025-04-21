@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { currencyConfig } from "@/utils/currencyConfig";
+import { Loader2 } from "lucide-react";
 
 const invoiceSchema = z.object({
   case_id: z.string().min(1, "Case is required"),
@@ -25,6 +27,7 @@ export function NewInvoiceForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [cases, setCases] = useState<Array<{ id: string; title: string }>>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
@@ -36,26 +39,35 @@ export function NewInvoiceForm() {
   });
 
   const fetchCases = async () => {
-    const { data, error } = await supabase
-      .from("cases")
-      .select("id, title");
-    
-    if (error) {
-      console.error("Error fetching cases:", error);
-      return;
-    }
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from("cases")
+        .select("id, title");
+      
+      if (error) {
+        console.error("Error fetching cases:", error);
+        toast.error(`Error loading cases: ${error.message}`);
+        return;
+      }
 
-    setCases(data || []);
+      setCases(data || []);
+    } catch (error: any) {
+      console.error("Error in fetchCases:", error);
+      toast.error("Failed to load cases");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const generateInvoiceId = (caseId: string) => {
-    const caseNumber = caseId.split('-')[1] || '000';
-    const timestamp = Date.now().toString().slice(-4);
-    return `INV-${caseNumber}-${timestamp}`;
+    const timestamp = Date.now().toString().slice(-6);
+    return `INV-${timestamp}`;
   };
 
   const onSubmit = async (data: InvoiceFormValues) => {
     try {
+      setIsLoading(true);
       const invoiceId = generateInvoiceId(data.case_id);
       
       const { error } = await supabase
@@ -68,7 +80,10 @@ export function NewInvoiceForm() {
           status: "Pending"
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Invoice creation error:", error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -79,13 +94,14 @@ export function NewInvoiceForm() {
       setOpen(false);
       form.reset();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating invoice:", error);
       toast({
         title: "Error",
-        description: "Failed to create invoice",
-        variant: "destructive",
+        description: `Failed to create invoice: ${error.message}`,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -114,18 +130,30 @@ export function NewInvoiceForm() {
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    disabled={isLoading}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a case" />
+                        <SelectValue placeholder={isLoading ? "Loading cases..." : "Select a case"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {cases.map((case_) => (
-                        <SelectItem key={case_.id} value={case_.id}>
-                          {case_.title}
+                      {cases.length === 0 && isLoading ? (
+                        <SelectItem value="loading" disabled>
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Loading cases...
+                          </div>
                         </SelectItem>
-                      ))}
+                      ) : cases.length === 0 ? (
+                        <SelectItem value="none" disabled>No cases available</SelectItem>
+                      ) : (
+                        cases.map((case_) => (
+                          <SelectItem key={case_.id} value={case_.id}>
+                            {case_.title}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -140,7 +168,7 @@ export function NewInvoiceForm() {
                 <FormItem>
                   <FormLabel>Amount ({currencyConfig.symbol})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" placeholder="Enter amount" {...field} />
+                    <Input type="number" step="0.01" placeholder="Enter amount" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -154,14 +182,23 @@ export function NewInvoiceForm() {
                 <FormItem>
                   <FormLabel>Due Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <Button type="submit" className="w-full">Create Invoice</Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Invoice"
+              )}
+            </Button>
           </form>
         </Form>
       </DialogContent>

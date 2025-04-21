@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Client {
@@ -30,10 +30,20 @@ interface Client {
 interface ClientsTableProps {
   clients: Client[];
   statusColors: Record<string, string>;
+  loading?: boolean;
 }
 
-export const ClientsTable = ({ clients, statusColors }: ClientsTableProps) => {
+export const ClientsTable = ({ clients, statusColors, loading = false }: ClientsTableProps) => {
   const { toast } = useToast();
+
+  if (loading) {
+    return (
+      <div className="rounded-md border p-8 flex flex-col items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-law-primary mb-4" />
+        <p className="text-muted-foreground">Loading clients data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-md border">
@@ -53,7 +63,7 @@ export const ClientsTable = ({ clients, statusColors }: ClientsTableProps) => {
           {clients.length > 0 ? (
             clients.map((client) => (
               <TableRow key={client.id}>
-                <TableCell className="font-medium">{client.id}</TableCell>
+                <TableCell className="font-medium">{client.id.substring(0, 8)}...</TableCell>
                 <TableCell>{client.name}</TableCell>
                 <TableCell>{client.email}</TableCell>
                 <TableCell>{client.phone}</TableCell>
@@ -75,7 +85,7 @@ export const ClientsTable = ({ clients, statusColors }: ClientsTableProps) => {
                         onClick={() => {
                           toast({
                             title: "View Client",
-                            description: `Viewing details for ${client.id}`
+                            description: `Viewing details for ${client.id.substring(0, 8)}...`
                           });
                         }}
                       >
@@ -85,7 +95,7 @@ export const ClientsTable = ({ clients, statusColors }: ClientsTableProps) => {
                         onClick={() => {
                           toast({
                             title: "Edit Client",
-                            description: `Editing ${client.id}`
+                            description: `Editing ${client.id.substring(0, 8)}...`
                           });
                         }}
                       >

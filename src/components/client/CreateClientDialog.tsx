@@ -58,30 +58,27 @@ export function CreateClientDialog({ children }: { children: React.ReactNode }) 
     setIsSubmitting(true);
 
     try {
-      // 1. Create a user in auth.users (which will trigger the creation of a profile)
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: data.email,
-        email_confirm: true,
-        user_metadata: {
-          full_name: data.name,
-        },
-        app_metadata: {
-          role: "client",
-        },
-      });
-
-      if (authError) throw authError;
-
-      // 2. Get the created user's profile
+      console.log("Submitting client data:", data);
+      
+      // Step 1: Create a profile for the client
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
+        .insert({
+          full_name: data.name,
+          email: data.email,
+          role: "client",
+        })
         .select()
-        .eq("id", authData.user.id)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile creation error:", profileError);
+        throw profileError;
+      }
 
-      // 3. Create the initial case for this client
+      console.log("Created profile:", profileData);
+
+      // Step 2: Create the initial case for this client
       const { data: caseData, error: caseError } = await supabase
         .from("cases")
         .insert({
@@ -93,7 +90,12 @@ export function CreateClientDialog({ children }: { children: React.ReactNode }) 
         .select()
         .single();
 
-      if (caseError) throw caseError;
+      if (caseError) {
+        console.error("Case creation error:", caseError);
+        throw caseError;
+      }
+
+      console.log("Created case:", caseData);
 
       toast({
         title: "Client created successfully",
@@ -105,7 +107,7 @@ export function CreateClientDialog({ children }: { children: React.ReactNode }) 
       
       // Navigate to the clients page after successful creation
       navigate("/clients");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating client:", error);
       toast({
         title: "Failed to create client",

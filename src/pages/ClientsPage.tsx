@@ -1,53 +1,13 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import AppLayout from "@/components/layouts/AppLayout";
 import { ClientsHeader } from "@/components/client/ClientsHeader";
 import { ClientsFilters } from "@/components/client/ClientsFilters";
 import { ClientsTable } from "@/components/client/ClientsTable";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Mock data
-const clients = [
-  {
-    id: "CLIENT-001",
-    name: "Raj Singh",
-    email: "raj.singh@example.com",
-    phone: "+91 98765 43210",
-    cases: 2,
-    status: "Active",
-  },
-  {
-    id: "CLIENT-002",
-    name: "Mehta Industries Ltd.",
-    email: "contact@mehtaindustries.com",
-    phone: "+91 22 6789 0123",
-    cases: 1,
-    status: "Active",
-  },
-  {
-    id: "CLIENT-003",
-    name: "Anil Kumar",
-    email: "anil.kumar@example.com",
-    phone: "+91 87654 32109",
-    cases: 1,
-    status: "Active",
-  },
-  {
-    id: "CLIENT-004",
-    name: "Sharma Family",
-    email: "vsharm@example.com",
-    phone: "+91 76543 21098",
-    cases: 1,
-    status: "Inactive",
-  },
-  {
-    id: "CLIENT-005",
-    name: "Vimal Jain",
-    email: "vimal.jain@example.com",
-    phone: "+91 65432 10987",
-    cases: 1,
-    status: "Active",
-  },
-];
-
+// Status color mapping
 const statusColors: Record<string, string> = {
   Active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
   Inactive: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
@@ -55,11 +15,54 @@ const statusColors: Record<string, string> = {
 
 const ClientsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [clients, setClients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("profiles")
+          .select(`
+            id,
+            full_name,
+            email,
+            role,
+            cases:cases(*)
+          `)
+          .eq("role", "client");
+
+        if (error) {
+          throw error;
+        }
+
+        // Format client data for the table
+        const formattedClients = data.map(client => ({
+          id: client.id,
+          name: client.full_name,
+          email: client.email,
+          phone: "Not Available", // Phone not currently stored in profiles
+          cases: client.cases ? client.cases.length : 0,
+          status: "Active" // Default status
+        }));
+        
+        setClients(formattedClients);
+      } catch (error: any) {
+        console.error("Error fetching clients:", error);
+        toast.error(`Error loading clients: ${error.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClients();
+  }, []);
+
   const filteredClients = clients.filter((c) =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.id.toLowerCase().includes(searchTerm.toLowerCase())
+    c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.id?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -73,6 +76,7 @@ const ClientsPage = () => {
         <ClientsTable 
           clients={filteredClients}
           statusColors={statusColors}
+          loading={loading}
         />
       </div>
     </AppLayout>
