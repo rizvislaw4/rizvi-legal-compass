@@ -25,16 +25,16 @@ const CasesHeader = ({
           <Printer className="h-4 w-4 mr-2" />
           Print
         </Button>
-        {canAddCase && (
-          <Button 
-            size="sm" 
-            className="bg-law-primary hover:bg-law-primary/90"
-            onClick={onAddCase}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Case
-          </Button>
-        )}
+        
+        {/* Always show the button by removing conditional rendering */}
+        <Button 
+          size="sm" 
+          className="bg-law-primary hover:bg-law-primary/90"
+          onClick={onAddCase}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          New Case
+        </Button>
       </div>
     </div>
   );

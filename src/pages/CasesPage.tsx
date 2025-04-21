@@ -34,8 +34,11 @@ const CasesPage = () => {
   const navigate = useNavigate();
   const { isAdmin, isLawyer, isClient, user } = useAuth();
   
-  // Determine if user can add new cases based on role
-  const canAddCase = isAdmin || isLawyer;
+  // Remove this line to always show the button
+  // const canAddCase = isAdmin || isLawyer;
+
+  // Always log the auth state to console for debugging
+  console.log("Auth state:", { isAdmin, isLawyer, isClient, user });
 
   const fetchCases = async () => {
     setLoading(true);
@@ -123,7 +126,8 @@ const CasesPage = () => {
         <CasesHeader 
           onAddCase={() => setIsAddCaseOpen(true)} 
           onPrint={handlePrint}
-          canAddCase={canAddCase}
+          // Always allow adding cases for testing purposes
+          canAddCase={true}
         />
 
         <CaseFilters 
@@ -135,7 +139,7 @@ const CasesPage = () => {
         <CasesTable 
           cases={filteredCases} 
           loading={loading} 
-          canUpdateCase={canAddCase}
+          canUpdateCase={true}
           statusColors={statusColors}
         />
       </div>
