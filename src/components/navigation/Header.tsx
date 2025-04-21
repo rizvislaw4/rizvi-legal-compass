@@ -1,6 +1,7 @@
+
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
-import { Moon, Sun, User, Menu, Search, Bell } from "lucide-react";
+import { Moon, Sun, User, Menu, Search, Bell, UserPlus, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
@@ -8,6 +9,8 @@ import UserMenu from "./UserMenu";
 import { useToast } from "@/hooks/use-toast";
 import NotificationsPopover from "../notifications/NotificationsPopover";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
+import { CreateClientDialog } from "@/components/client/CreateClientDialog";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -56,6 +59,32 @@ const Header = () => {
         <div className="flex items-center gap-3">
           <GlobalSearch />
           
+          {/* View Clients button as a link */}
+          <Link to="/clients">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+              aria-label="View Clients"
+            >
+              <Users className="h-4 w-4" />
+              <span className="hidden md:inline">View Clients</span>
+            </Button>
+          </Link>
+
+          {/* Add Client button with dialog */}
+          <CreateClientDialog>
+            <Button
+              variant="default"
+              size="sm"
+              className="flex items-center gap-2 bg-law-primary hover:bg-law-primary/90 text-white"
+              aria-label="Add Client"
+            >
+              <UserPlus className="h-4 w-4" />
+              <span className="hidden md:inline">Add Client</span>
+            </Button>
+          </CreateClientDialog>
+          
           <NotificationsPopover />
           
           <Button
@@ -79,3 +108,4 @@ const Header = () => {
 }
 
 export default Header;
+
